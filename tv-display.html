@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCP Canteen — Order Status Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#03050B; --panel:#0D1330; --panel-2:#121A3F;
+  --line:rgba(255,255,255,0.08); --text:#F2F5FF; --text-dim:#7C89B4;
+  --blue:#2F6FED; --blue-bright:#5FA0FF; --green:#2ECC71;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100vh;height:100dvh;overflow:hidden;}
+h1,.display{font-family:'Poppins',sans-serif;font-weight:800;}
+.mono{font-family:'JetBrains Mono',monospace;}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 40px;border-bottom:2px solid var(--line);
+  background:linear-gradient(180deg, rgba(47,111,237,0.08), transparent);
+}
+.brand{display:flex;align-items:center;gap:16px;}
+.brand-badge{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--blue),#14245C);display:flex;align-items:center;justify-content:center;font-family:'Poppins';font-weight:800;font-size:19px;}
+.brand h1{font-size:24px;margin:0;}
+.brand .sub{font-family:'JetBrains Mono';font-size:11px;color:var(--text-dim);margin-top:3px;}
+.clock{font-family:'JetBrains Mono';font-size:26px;color:var(--blue-bright);}
+
+.layout{display:grid;grid-template-columns:1.6fr 1fr;height:calc(100vh - 96px);}
+.ready-panel{padding:30px 40px;overflow-y:auto;}
+.ready-title{display:flex;align-items:center;gap:14px;margin-bottom:26px;}
+.ready-title .badge{background:var(--green);color:#06210F;font-family:'JetBrains Mono';font-weight:700;font-size:13px;padding:6px 14px;border-radius:999px;}
+.ready-title h2{font-size:28px;margin:0;}
+
+.ready-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;}
+.ready-tile{
+  background:linear-gradient(160deg, var(--panel-2), var(--panel));
+  border:2px solid rgba(46,204,113,0.5);
+  border-radius:18px;padding:22px 10px;text-align:center;
+  animation:glow 2.2s infinite;
+}
+@keyframes glow{0%,100%{box-shadow:0 0 0 rgba(46,204,113,0.0);}50%{box-shadow:0 0 26px rgba(46,204,113,0.35);}}
+.ready-tile .num{font-family:'JetBrains Mono';font-weight:700;font-size:38px;color:var(--green);}
+.ready-tile .nm{font-size:11.5px;color:var(--text-dim);margin-top:6px;}
+.empty-state{color:var(--text-dim);font-family:'JetBrains Mono';font-size:14px;text-align:center;padding:60px 20px;}
+
+.prep-panel{background:var(--panel);border-left:2px solid var(--line);padding:30px 30px;overflow-y:auto;}
+.prep-title{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+.prep-title .badge{background:var(--blue);font-family:'JetBrains Mono';font-weight:700;font-size:12px;padding:5px 12px;border-radius:999px;}
+.prep-title h2{font-size:19px;margin:0;color:var(--text-dim);}
+.prep-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--panel-2);border-radius:10px;margin-bottom:10px;}
+.prep-row .num{font-family:'JetBrains Mono';font-weight:700;font-size:18px;color:var(--blue-bright);}
+.prep-row .nm{font-size:12px;color:var(--text-dim);}
+
+footer{position:fixed;bottom:0;left:0;right:0;text-align:center;padding:10px;font-family:'JetBrains Mono';font-size:10px;color:var(--text-dim);border-top:1px solid var(--line);background:var(--bg);}
+
+/* ================= RESPONSIVE ================= */
+/* Below TV/desktop widths, the fixed-height two-column layout no longer fits;
+   let it scroll and stack instead of clipping content. */
+@media(max-width:1000px){
+  body{height:auto;min-height:100vh;min-height:100dvh;overflow-y:auto;overflow-x:hidden;}
+  .layout{grid-template-columns:1fr;height:auto;}
+  .prep-panel{border-left:none;border-top:2px solid var(--line);}
+  footer{position:static;margin-top:8px;}
+}
+@media(max-width:700px){
+  .topbar{padding:16px 20px;flex-wrap:wrap;row-gap:8px;}
+  .brand{gap:12px;}
+  .brand-badge{width:40px;height:40px;font-size:15px;}
+  .brand h1{font-size:18px;}
+  .brand .sub{font-size:9.5px;}
+  .clock{font-size:19px;}
+  .ready-panel,.prep-panel{padding:20px;}
+  .ready-title h2{font-size:20px;}
+  .ready-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;}
+  .ready-tile{padding:16px 8px;}
+  .ready-tile .num{font-size:28px;}
+  .prep-title h2{font-size:16px;}
+}
+@media(max-width:420px){
+  .ready-grid{grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:10px;}
+  .brand .sub{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-badge">SCP</div>
+    <div>
+      <h1>Order Status Board</h1>
+      <div class="sub">SCP: Systematic Canteen Supply Chain Process — Talon Dos Campus</div>
+    </div>
+  </div>
+  <div class="clock mono" id="clock">--:--:--</div>
+</div>
+
+<div class="layout">
+  <div class="ready-panel">
+    <div class="ready-title"><span class="badge">READY</span><h2>Ready for Pick-up</h2></div>
+    <div class="ready-grid" id="readyGrid"></div>
+  </div>
+  <div class="prep-panel">
+    <div class="prep-title"><span class="badge">IN PROGRESS</span><h2>Now Preparing</h2></div>
+    <div id="prepList"></div>
+  </div>
+</div>
+
+<footer>RESEARCH PROTOTYPE · LAS PIÑAS CITY NATIONAL SENIOR HIGH SCHOOL — TALON DOS CAMPUS</footer>
+
+<script>
+const KEYS = { orders:'scp_orders' };
+const HAS_ARTIFACT_STORAGE = typeof window.storage !== 'undefined'
+  && window.storage && typeof window.storage.get === 'function' && typeof window.storage.set === 'function';
+
+async function kvGet(key){
+  if(HAS_ARTIFACT_STORAGE){
+    try{ const r = await window.storage.get(key, true); return r ? r.value : null; }catch(e){ /* fall through */ }
+  }
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+
+async function loadOrders(){
+  const v = await kvGet(KEYS.orders);
+  try{ return v ? JSON.parse(v) : []; }catch(e){ return []; }
+}
+
+window.addEventListener('storage', (e)=>{
+  if(e.key === KEYS.orders) render();
+});
+function escapeHtml(str){ return String(str||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+async function render(){
+  const orders = await loadOrders();
+  const ready = orders.filter(o=>o.status==='ready').sort((a,b)=>a.createdAt-b.createdAt);
+  const preparing = orders.filter(o=>o.status==='placed' || o.status==='preparing').sort((a,b)=>a.createdAt-b.createdAt);
+
+  document.getElementById('readyGrid').innerHTML = ready.length
+    ? ready.map(o=>`<div class="ready-tile"><div class="num">${o.ticket}</div><div class="nm">${escapeHtml(o.name)}</div></div>`).join('')
+    : `<div class="empty-state">No orders ready yet.<br>Please wait for your number to appear here.</div>`;
+
+  document.getElementById('prepList').innerHTML = preparing.length
+    ? preparing.map(o=>`<div class="prep-row"><span class="num">${o.ticket}</span><span class="nm">${escapeHtml(o.name)}</span></div>`).join('')
+    : `<div class="empty-state" style="padding:30px 10px;">Nothing in progress.</div>`;
+}
+
+function tickClock(){
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-PH', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+render();
+setInterval(render, 2000);
+</script>
+</body>
+</html>
